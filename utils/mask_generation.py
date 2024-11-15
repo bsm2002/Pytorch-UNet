@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import glob
 import multiprocessing as mp
+import os
 
 def masking(file):
     image = cv2.imread(filename=file)
@@ -45,11 +46,20 @@ def masking(file):
     # cv2.destroyAllWindows()
 
     # Optional: Save mask image to data/masks folder
-    cv2.imwrite('../data/masks/pore/' + file.split('/')[-1], mask_image * 255)
+    cv2.imwrite('../data/masks/' + file.split('/')[-1], mask_image)
 
 if __name__ == "__main__":
-    files = glob.glob('../data/pore/*_pore.jpg')
-    files = [file for file in files if 'org' not in file]   # Exclude files with 'org' in the filename
+    files = glob.glob('../data/analyzed/*_pore.jpg')
+    org_files = glob.glob('../data/imgs/*.jpg')
+
+    # rename files and org_files
+    for file, org_file in zip(files, org_files):
+        new_file = file.replace(file, file.split('_')[0] + '.jpg')
+        new_org_file = org_file.replace(org_file, org_file.split('_')[0] + '.jpg')
+        os.rename(file, new_file)
+        os.rename(org_file, new_org_file)
+
+    files = glob.glob('../data/analyzed/*.jpg')
 
     pool = mp.Pool(processes=mp.cpu_count())
     pool.map(masking, files)
